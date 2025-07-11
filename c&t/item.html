@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coffee & Idli Order</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .card {
+      width: 300px;
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card img {
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .item-name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .counter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      font-size: 20px;
+      margin: 10px 0;
+    }
+
+    .counter button {
+      padding: 5px 15px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .summary {
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .summary p {
+      margin: 5px 0;
+    }
+
+    .qr-section img {
+      width: 200px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🛒 Order Menu</h2>
+
+<div class="container" id="menuSection">
+  <!-- Coffee Card -->
+  <div class="card" id="coffeeCard">
+    <img src="./coffee.jpg" alt="Coffee">
+    <div class="item-name">Coffee</div>
+    <div class="counter">
+      <button onclick="changeCount('coffee', -1)">-</button>
+      <span id="coffeeCount">0</span>
+      <button onclick="changeCount('coffee', 1)">+</button>
+    </div>
+    <button class="button" onclick="placeOrder('coffee')">Order Now</button>
+  </div>
+
+  <!-- Idli Card -->
+  <div class="card" id="idliCard">
+    <img src="./idli.jpg" alt="Idli">
+    <div class="item-name">Idli</div>
+    <div class="counter">
+      <button onclick="changeCount('idli', -1)">-</button>
+      <span id="idliCount">0</span>
+      <button onclick="changeCount('idli', 1)">+</button>
+    </div>
+    <button class="button" onclick="placeOrder('idli')">Order Now</button>
+  </div>
+</div>
+
+<!-- QR Payment Section -->
+<div class="card hidden" id="qrSection">
+  <p><strong>Total Amount: ₹<span id="qrAmount">0</span></strong></p>
+  <p>Scan QR Code to Pay</p>
+  <img id="qrImage" src="./Qr.jpg" alt="QR Code">
+  <br>
+  <button class="button" onclick="confirmPayment()">Payment Completed</button>
+</div>
+
+<!-- Order Summary -->
+<div class="card hidden" id="summarySection">
+  <h3>✅ Order Confirmed</h3>
+  <div class="summary" id="summaryDetails"></div>
+  <button class="button" onclick="resetOrder()">New Order</button>
+</div>
+
+<script>
+  const prices = {
+    coffee: 10,
+    idli: 7
+  };
+
+  const phone = "8688642460";
+
+  let itemCounts = {
+    coffee: 0,
+    idli: 0
+  };
+
+  let currentItem = '';
+
+  function changeCount(item, change) {
+    itemCounts[item] += change;
+    if (itemCounts[item] < 0) itemCounts[item] = 0;
+    document.getElementById(item + "Count").innerText = itemCounts[item];
+  }
+
+  function placeOrder(item) {
+    if (itemCounts[item] === 0) {
+      alert("Please select at least 1 " + item + ".");
+      return;
+    }
+
+    currentItem = item;
+    const total = itemCounts[item] * prices[item];
+    document.getElementById("qrAmount").innerText = total;
+
+    const qrURL = `https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=${phone}@upi&pn=${item}&am=${total}&cu=INR`;
+    document.getElementById("qrImage").src = qrURL;
+
+    document.getElementById("menuSection").classList.add("hidden");
+    document.getElementById("qrSection").classList.remove("hidden");
+  }
+
+  function confirmPayment() {
+    const total = itemCounts[currentItem] * prices[currentItem];
+    const itemName = currentItem.charAt(0).toUpperCase() + currentItem.slice(1);
+
+    document.getElementById("qrSection").classList.add("hidden");
+    document.getElementById("summarySection").classList.remove("hidden");
+
+    document.getElementById("summaryDetails").innerHTML = `
+      <p><strong>Item:</strong> ${itemName}</p>
+      <p><strong>Quantity:</strong> ${itemCounts[currentItem]}</p>
+      <p><strong>Total:</strong> ₹${total}</p>
+      <p><strong>Payment:</strong> Online (QR)</p>
+      <p><strong>Mobile:</strong> ${phone}</p>
+    `;
+  }
+
+  function resetOrder() {
+    itemCounts = { coffee: 0, idli: 0 };
+    document.getElementById("coffeeCount").innerText = 0;
+    document.getElementById("idliCount").innerText = 0;
+
+    document.getElementById("summarySection").classList.add("hidden");
+    document.getElementById("menuSection").classList.remove("hidden");
+  }
+</script>
+
+</body>
+</html>
